@@ -16,7 +16,7 @@ Full docs of the Sendcloud API can be found on https://docs.sendcloud.sc/api/v2/
 
 ## Installation
 ```ssh
-composer require dietervyncke/dry-sendcloud
+composer require tallieutallieu/dry-sendcloud
 
 php oak migration migrate -m sendcloud
 ```

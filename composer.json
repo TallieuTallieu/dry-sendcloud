@@ -1,7 +1,15 @@
 {
-  "name": "dietervyncke/dry-sendcloud",
-  "description": "Dry Sendcloud",
+  "name": "tallieutallieu/dry-sendcloud",
+  "description": "Sendcloud package for Dry",
   "type": "library",
+  "authors": [
+    {
+      "name": "Dieter Vyncke",
+      "email": "dieter@tnt.be",
+      "homepage": "https://tnt.be",
+      "role": "Developer"
+    }
+  ],
   "require": {
     "guzzlehttp/guzzle": "^6.5"
   },
