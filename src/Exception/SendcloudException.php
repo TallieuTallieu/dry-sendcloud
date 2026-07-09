@@ -2,7 +2,4 @@
 
 namespace Tnt\Sendcloud\Exception;
 
-class SendcloudException extends \Exception
-{
-
-}
+class SendcloudException extends \Exception {}

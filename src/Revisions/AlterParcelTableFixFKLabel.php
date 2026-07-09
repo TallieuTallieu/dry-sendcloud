@@ -5,26 +5,29 @@ namespace Tnt\Sendcloud\Revisions;
 use Oak\Contracts\Migration\RevisionInterface;
 use Tnt\Dbi\TableBuilder;
 
-class AlterParcelTableFixFKLabel extends DatabaseRevision implements RevisionInterface
+class AlterParcelTableFixFKLabel extends DatabaseRevision implements
+    RevisionInterface
 {
     public function up(): void
     {
-        $this->queryBuilder->table('sendcloud_parcel')->alter(function (TableBuilder $table) {
-
-            $table->dropForeignKey('label', 'sendcloud_parcel');
-            $table->addForeignKey('label', 'sendcloud_label');
-        });
+        $this->queryBuilder
+            ->table('sendcloud_parcel')
+            ->alter(function (TableBuilder $table) {
+                $table->dropForeignKey('label', 'sendcloud_parcel');
+                $table->addForeignKey('label', 'sendcloud_label');
+            });
 
         $this->execute();
     }
 
     public function down(): void
     {
-        $this->queryBuilder->table('sendcloud_parcel')->alter(function (TableBuilder $table) {
-
-            $table->dropForeignKey('label', 'sendcloud_label');
-            $table->addForeignKey('label', 'sendcloud_parcel');
-        });
+        $this->queryBuilder
+            ->table('sendcloud_parcel')
+            ->alter(function (TableBuilder $table) {
+                $table->dropForeignKey('label', 'sendcloud_label');
+                $table->addForeignKey('label', 'sendcloud_parcel');
+            });
 
         $this->execute();
     }

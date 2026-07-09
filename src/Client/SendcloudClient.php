@@ -33,8 +33,9 @@ class SendcloudClient
     public function get(string $endPoint, array $params = []): array
     {
         try {
-            return $this->parseResponse($this->client->request('GET', $endPoint, ['query' => $params]));
-
+            return $this->parseResponse(
+                $this->client->request('GET', $endPoint, ['query' => $params])
+            );
         } catch (RequestException $e) {
             if ($e->hasResponse()) {
                 $this->parseResponse($e->getResponse());
@@ -58,9 +59,7 @@ class SendcloudClient
             ]);
 
             return $this->parseResponse($response);
-
         } catch (RequestException $e) {
-
             if ($e->hasResponse()) {
                 $this->parseResponse($e->getResponse());
             }
@@ -82,12 +81,13 @@ class SendcloudClient
             ]);
 
             return $this->parseResponse($response);
-
         } catch (ClientException $e) {
-            throw new SendcloudException('Sendcloud error (ClientException)'. $e->getResponse()->getBody()->getContents(), $e->getResponse()->getStatusCode());
-
+            throw new SendcloudException(
+                'Sendcloud error (ClientException)' .
+                    $e->getResponse()->getBody()->getContents(),
+                $e->getResponse()->getStatusCode()
+            );
         } catch (RequestException $e) {
-
             if ($e->hasResponse()) {
                 $this->parseResponse($e->getResponse());
             }
@@ -104,10 +104,10 @@ class SendcloudClient
     public function delete(string $endPoint): array
     {
         try {
-            return $this->parseResponse($this->client->request('DELETE', $endPoint));
-
+            return $this->parseResponse(
+                $this->client->request('DELETE', $endPoint)
+            );
         } catch (RequestException $e) {
-
             if ($e->hasResponse()) {
                 $this->parseResponse($e->getResponse());
             }
@@ -126,7 +126,6 @@ class SendcloudClient
         try {
             $result = $this->client->request('GET', $url);
             return $result->getBody()->getContents();
-
         } catch (RequestException $e) {
             throw $this->requestException('DOWNLOAD', $e);
         }
@@ -140,35 +139,50 @@ class SendcloudClient
     private function parseResponse(ResponseInterface $response): array
     {
         try {
-
             $responseBody = $response->getBody()->getContents();
             $resultArray = json_decode($responseBody, true);
 
-            if (! is_array($resultArray)) {
-                throw new SendcloudException(sprintf('SendCloud error %s: %s', $response->getStatusCode(), $responseBody), $response->getStatusCode());
+            if (!is_array($resultArray)) {
+                throw new SendcloudException(
+                    sprintf(
+                        'SendCloud error %s: %s',
+                        $response->getStatusCode(),
+                        $responseBody
+                    ),
+                    $response->getStatusCode()
+                );
             }
 
-            if (array_key_exists('error', $resultArray)
-                && is_array($resultArray['error'])
-                && array_key_exists('message', $resultArray['error'])
+            if (
+                array_key_exists('error', $resultArray) &&
+                is_array($resultArray['error']) &&
+                array_key_exists('message', $resultArray['error'])
             ) {
-                throw new SendcloudException('SendCloud error: ' . $resultArray['error']['message'], $resultArray['error']['code']);
+                throw new SendcloudException(
+                    'SendCloud error: ' . $resultArray['error']['message'],
+                    $resultArray['error']['code']
+                );
             }
 
             return $resultArray;
-
         } catch (\RuntimeException $e) {
-            throw new SendcloudException('Sendcloud error '.$e->getMessage());
+            throw new SendcloudException('Sendcloud error ' . $e->getMessage());
         }
     }
 
-    private function requestException(string $method, RequestException $exception): SendcloudException
-    {
+    private function requestException(
+        string $method,
+        RequestException $exception
+    ): SendcloudException {
         $response = $exception->getResponse();
 
-        if (! $response) {
+        if (!$response) {
             return new SendcloudException(
-                sprintf('Sendcloud error (method: %s): %s', $method, $exception->getMessage()),
+                sprintf(
+                    'Sendcloud error (method: %s): %s',
+                    $method,
+                    $exception->getMessage()
+                ),
                 $exception->getCode()
             );
         }

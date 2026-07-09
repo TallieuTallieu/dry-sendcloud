@@ -27,8 +27,8 @@ class Parcel extends Model
     const TABLE = 'sendcloud_parcel';
 
     public static $special_fields = [
-      'label' => Label::class,
-      'shipment_method' => ShipmentMethod::class,
+        'label' => Label::class,
+        'shipment_method' => ShipmentMethod::class,
     ];
 
     public function getLabels(): HasMany

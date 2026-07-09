@@ -17,29 +17,45 @@ class WebhookController
 
         $data = json_decode($request->put, true);
 
-        if (! is_array($data) || empty($data['action'])) {
-            throw new SendcloudWebhookException('Webhook request does not contain an action and is probably malformed.');
+        if (!is_array($data) || empty($data['action'])) {
+            throw new SendcloudWebhookException(
+                'Webhook request does not contain an action and is probably malformed.'
+            );
         }
 
         if ($data['action'] === 'parcel_status_changed') {
+            $parcelData = array_merge($data, [
+                $data['timestamp'] ?? null,
+                $data['action'],
+            ]);
 
-            $parcelData = array_merge($data, [$data['timestamp'] ?? null, $data['action']]);
-
-            Dispatcher::dispatch(ParcelChanged::class, new ParcelChanged($parcelData));
+            Dispatcher::dispatch(
+                ParcelChanged::class,
+                new ParcelChanged($parcelData)
+            );
         }
     }
 
-    private static function verifyWebhookRequest(Request $request, string $secretKey): void
-    {
+    private static function verifyWebhookRequest(
+        Request $request,
+        string $secretKey
+    ): void {
         $sendcloudSignature = $_SERVER['HTTP_SENDCLOUD_SIGNATURE'] ?? null;
 
-        if (! $sendcloudSignature) {
-            throw new SendcloudWebhookException('Webhook request does not specify a signature header.');
+        if (!$sendcloudSignature) {
+            throw new SendcloudWebhookException(
+                'Webhook request does not specify a signature header.'
+            );
         }
 
         // This is a POST request but content only available as 'file_get_contents( 'php://input' )'
-        if (hash_hmac("sha256", (string)$request->put, $secretKey) !== $sendcloudSignature) {
-            throw new SendcloudWebhookException('Hashed webhook payload does not match Sendcloud-supplied header.');
+        if (
+            hash_hmac('sha256', (string) $request->put, $secretKey) !==
+            $sendcloudSignature
+        ) {
+            throw new SendcloudWebhookException(
+                'Hashed webhook payload does not match Sendcloud-supplied header.'
+            );
         }
     }
 }

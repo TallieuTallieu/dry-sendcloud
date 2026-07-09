@@ -24,7 +24,6 @@ class SendcloudServiceProvider extends ServiceProvider
     public function boot(ContainerInterface $app)
     {
         if ($app->isRunningInConsole()) {
-
             $migrator = $app->getWith(Migrator::class, [
                 'name' => 'sendcloud',
             ]);
@@ -36,20 +35,25 @@ class SendcloudServiceProvider extends ServiceProvider
                 AlterParcelTableFixFKLabel::class,
             ]);
 
-            $app->get(MigrationManager::class)
-                ->addMigrator($migrator);
+            $app->get(MigrationManager::class)->addMigrator($migrator);
 
-            $app->get(KernelInterface::class)
-                ->registerCommand(Sendcloud::class);
+            $app->get(KernelInterface::class)->registerCommand(
+                Sendcloud::class
+            );
         }
 
         Router::register('nl', null, [
-            'sendcloud-webhook/' => function($request) use ($app) {
+            'sendcloud-webhook/' => function ($request) use ($app) {
                 call_user_func_array(
-                    [WebhookController::class, 'process',],
-                    [$request, $app->get(RepositoryInterface::class)->get('sendcloud.secret_api')]
+                    [WebhookController::class, 'process'],
+                    [
+                        $request,
+                        $app
+                            ->get(RepositoryInterface::class)
+                            ->get('sendcloud.secret_api'),
+                    ]
                 );
-            }
+            },
         ]);
     }
 
@@ -58,11 +62,10 @@ class SendcloudServiceProvider extends ServiceProvider
         $config = $app->get(RepositoryInterface::class);
 
         $app->singleton(ClientInterface::class, function () use ($config) {
-
             return new Client([
                 'base_uri' => $config->get('sendcloud.api_url'),
                 'headers' => [
-                    'Content-Type' => 'application/json'
+                    'Content-Type' => 'application/json',
                 ],
                 'auth' => [
                     $config->get('sendcloud.public_api'),
@@ -76,4 +79,3 @@ class SendcloudServiceProvider extends ServiceProvider
         $app->singleton(Api::class, Api::class);
     }
 }
-

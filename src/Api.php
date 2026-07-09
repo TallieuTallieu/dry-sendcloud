@@ -37,7 +37,7 @@ class Api
      */
     public function getParcel(int $id): array
     {
-        $response = $this->client->get('parcels/'.$id);
+        $response = $this->client->get('parcels/' . $id);
         return $response['parcel'];
     }
 
@@ -59,7 +59,7 @@ class Api
      */
     public function cancelParcel(int $id): array
     {
-        return $this->client->post('parcels/'.$id.'/cancel');
+        return $this->client->post('parcels/' . $id . '/cancel');
     }
 
     /**

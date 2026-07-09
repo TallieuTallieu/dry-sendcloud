@@ -21,13 +21,14 @@ class ParcelChanged extends Event
     {
         try {
             /** @var Parcel $parcel */
-            $parcel = Parcel::load_by('sendcloud_id', $parcelData['parcel']['id']);
+            $parcel = Parcel::load_by(
+                'sendcloud_id',
+                $parcelData['parcel']['id']
+            );
             $parcel->updated = $parcelData['timestamp'];
             $parcel->status = $parcelData['parcel']['status']['id'];
             $parcel->save();
-
         } catch (FetchException $e) {
-
             $parcel = null;
         }
 
@@ -37,7 +38,7 @@ class ParcelChanged extends Event
     /**
      * @return null|Parcel
      */
-    public function getParcel():? Parcel
+    public function getParcel(): ?Parcel
     {
         return $this->parcel;
     }
