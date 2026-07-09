@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -34,14 +34,14 @@ jobs:
 
       - name: Setup Bitbucket SSH key
         if: env.BITBUCKET_SSH_KEY != ''
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.BITBUCKET_SSH_KEY }}
-
-      - name: Trust Bitbucket host
-        if: env.BITBUCKET_SSH_KEY != ''
+        shell: bash
         run: |
           mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          eval "$(ssh-agent -s)"
+          echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> "$GITHUB_ENV"
+          echo "SSH_AGENT_PID=$SSH_AGENT_PID" >> "$GITHUB_ENV"
+          ssh-add - <<< "$BITBUCKET_SSH_KEY"
           ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
 
       - name: Install dependencies
