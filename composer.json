@@ -2,20 +2,30 @@
   "name": "tallieutallieu/dry-sendcloud",
   "description": "Sendcloud package for Dry",
   "type": "library",
-  "authors": [
-    {
-      "name": "Dieter Vyncke",
-      "email": "dieter@tnt.be",
-      "homepage": "https://tnt.be",
-      "role": "Developer"
-    }
-  ],
+  "license": "proprietary",
   "require": {
-    "guzzlehttp/guzzle": "^7.4.5"
+    "php": ">=8.4",
+    "tallieutallieu/dry": "^v3.8.1-beta.5|^4.0.0",
+    "tallieutallieu/oak": "^3.0.8",
+    "tallieutallieu/dry-dbi": "^3.8.0",
+    "guzzlehttp/guzzle": "^7.13"
+  },
+  "require-dev": {
+    "phpstan/phpstan": "^2.2"
   },
   "autoload": {
     "psr-4": {
       "Tnt\\Sendcloud\\": "src/"
     }
-  }
+  },
+  "scripts": {
+    "phpstan": "phpstan analyse --memory-limit=512M",
+    "phpstan:baseline": "phpstan analyse --memory-limit=512M --generate-baseline"
+  },
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "git@bitbucket.org:tallieu/dry3.git"
+    }
+  ]
 }

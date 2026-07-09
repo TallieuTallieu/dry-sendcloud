@@ -11,7 +11,6 @@ class Sendcloud extends Command
     {
         return $signature
             ->setName('sendcloud')
-            ->addSubCommand(SyncShipmentMethods::class)
-        ;
+            ->addSubCommand(SyncShipmentMethods::class);
     }
 }

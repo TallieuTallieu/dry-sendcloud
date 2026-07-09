@@ -1,0 +1,187 @@
+name: Auto Release
+
+on:
+  push:
+    branches: [master]
+    paths-ignore:
+      - 'README.md'
+      - 'AGENTS.md'
+      - '.gitignore'
+      - '.github/**'
+
+env:
+  BITBUCKET_SSH_KEY: ${{ secrets.BITBUCKET_SSH_KEY }}
+
+jobs:
+  auto-release:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer
+
+      - name: Setup Bitbucket SSH key
+        if: env.BITBUCKET_SSH_KEY != ''
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.BITBUCKET_SSH_KEY }}
+
+      - name: Trust Bitbucket host
+        if: env.BITBUCKET_SSH_KEY != ''
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
+
+      - name: Install dependencies
+        run: composer install --no-dev --optimize-autoloader
+
+      - name: Run verification checks
+        run: composer validate --strict
+
+      - name: Determine version bump type
+        id: version-type
+        run: |
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+
+          BRANCH_NAME=""
+          if [[ "$COMMIT_MSG" == *"Merge pull request"* ]]; then
+            BRANCH_NAME=$(echo "$COMMIT_MSG" | grep -o 'from [^/]*/[^[:space:]]*' | cut -d'/' -f2)
+          fi
+
+          VERSION_TYPE="patch"
+
+          if [[ "$COMMIT_MSG" == *"BREAKING CHANGE"* ]] || [[ "$COMMIT_MSG" == *"feat!"* ]]; then
+            VERSION_TYPE="major"
+          elif [[ "$BRANCH_NAME" == *"major"* ]] || [[ "$BRANCH_NAME" == *"breaking"* ]]; then
+            VERSION_TYPE="major"
+          elif [[ "$BRANCH_NAME" == *"feat"* ]] || [[ "$BRANCH_NAME" == *"feature"* ]] || [[ "$BRANCH_NAME" == *"minor"* ]]; then
+            VERSION_TYPE="minor"
+          elif [[ "$BRANCH_NAME" == *"fix"* ]] || [[ "$BRANCH_NAME" == *"hotfix"* ]] || [[ "$BRANCH_NAME" == *"patch"* ]]; then
+            VERSION_TYPE="patch"
+          elif [[ "$BRANCH_NAME" == *"sc-"* ]] && [[ "$BRANCH_NAME" == *"feature"* ]]; then
+            VERSION_TYPE="minor"
+          elif [[ "$COMMIT_MSG" == *"feat:"* ]] || [[ "$COMMIT_MSG" == *"feat("* ]]; then
+            VERSION_TYPE="minor"
+          elif [[ "$COMMIT_MSG" == *"fix:"* ]] || [[ "$COMMIT_MSG" == *"fix("* ]]; then
+            VERSION_TYPE="patch"
+          fi
+
+          echo "version_type=$VERSION_TYPE" >> "$GITHUB_OUTPUT"
+
+      - name: Configure git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+      - name: Check if version should be bumped
+        id: should-release
+        run: |
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          if [[ "$COMMIT_MSG" == *"chore(release):"* ]] || [[ "$COMMIT_MSG" == *"bump version"* ]]; then
+            echo "should_release=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_release=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Get current version and bump
+        id: version
+        if: steps.should-release.outputs.should_release == 'true'
+        run: |
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -z "$LATEST_TAG" ]; then
+            OLD_VERSION="0.0.0"
+          else
+            OLD_VERSION=${LATEST_TAG#v}
+          fi
+
+          if [[ $OLD_VERSION =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+            MAJOR=${BASH_REMATCH[1]}
+            MINOR=${BASH_REMATCH[2]}
+            PATCH=${BASH_REMATCH[3]}
+
+            case ${{ steps.version-type.outputs.version_type }} in
+              "major") MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
+              "minor") MINOR=$((MINOR + 1)); PATCH=0 ;;
+              "patch") PATCH=$((PATCH + 1)) ;;
+            esac
+
+            NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+          else
+            echo "Error: Invalid version format '$OLD_VERSION'" >&2
+            exit 1
+          fi
+
+          echo "old_version=$OLD_VERSION" >> "$GITHUB_OUTPUT"
+          echo "new_version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Create and push tag
+        if: steps.should-release.outputs.should_release == 'true'
+        run: |
+          git tag "${{ steps.version.outputs.new_version }}"
+          git push origin --tags
+
+      - name: Generate changelog
+        if: steps.should-release.outputs.should_release == 'true'
+        id: changelog
+        run: |
+          LATEST_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+
+          if [ -n "$LATEST_TAG" ]; then
+            echo "### Changes since $LATEST_TAG" > CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            git log --pretty=format:"- %s (%h)" $LATEST_TAG..HEAD >> CHANGELOG.md
+          else
+            echo "### Initial Release" > CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            echo "This is the first tagged release of dry-sendcloud." >> CHANGELOG.md
+          fi
+
+          CHANGELOG_CONTENT=$(cat CHANGELOG.md)
+          echo "changelog<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$CHANGELOG_CONTENT" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        if: steps.should-release.outputs.should_release == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.new_version }}
+          name: Release ${{ steps.version.outputs.new_version }}
+          body: |
+            ## Release ${{ steps.version.outputs.new_version }}
+
+            **Version bump**: ${{ steps.version.outputs.old_version }} -> ${{ steps.version.outputs.new_version }} (${{ steps.version-type.outputs.version_type }})
+
+            ${{ steps.changelog.outputs.changelog }}
+
+            ### Installation
+
+            ```bash
+            composer require tallieutallieu/dry-sendcloud:^${{ steps.version.outputs.new_version }}
+            ```
+
+            ### Usage
+
+            ```php
+            $app = new \Oak\Application();
+
+            $app->register([
+                \Tnt\Sendcloud\SendcloudServiceProvider::class,
+            ]);
+
+            $app->bootstrap();
+            ```
+          draft: false
+          prerelease: false

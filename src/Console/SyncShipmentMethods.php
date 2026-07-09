@@ -39,6 +39,9 @@ class SyncShipmentMethods extends Command
         return $signature->setName('sync-shipment-methods');
     }
 
+    /**
+     * @return void
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $output->writeLine('Start Sendcloud Shipment methods sync');
@@ -46,17 +49,20 @@ class SyncShipmentMethods extends Command
         $shipmentMethods = $this->apiClient->getShippingMethods();
 
         foreach ($shipmentMethods as $shipmentMethodData) {
-
             try {
-
-                $shipmentMethod = ShipmentMethod::load_by('sendcloud_id', $shipmentMethodData['id']);
+                /** @var ShipmentMethod $shipmentMethod */
+                $shipmentMethod = ShipmentMethod::load_by(
+                    'sendcloud_id',
+                    $shipmentMethodData['id']
+                );
                 $shipmentMethod->updated = time();
                 $shipmentMethod->save();
 
-                $output->writeLine('Updated shipment method '.$shipmentMethodData['name'], OutputInterface::TYPE_WARNING);
-
+                $output->writeLine(
+                    'Updated shipment method ' . $shipmentMethodData['name'],
+                    OutputInterface::TYPE_WARNING
+                );
             } catch (FetchException $e) {
-
                 $shipmentMethod = new ShipmentMethod();
                 $shipmentMethod->created = time();
                 $shipmentMethod->updated = time();
@@ -65,15 +71,21 @@ class SyncShipmentMethods extends Command
                 $shipmentMethod->carrier = $shipmentMethodData['carrier'];
                 $shipmentMethod->save();
 
-                $output->writeLine('Created shipment method '.$shipmentMethodData['name'], OutputInterface::TYPE_INFO);
+                $output->writeLine(
+                    'Created shipment method ' . $shipmentMethodData['name'],
+                    OutputInterface::TYPE_INFO
+                );
             }
         }
 
         foreach (ShipmentMethod::all() as $shipmentMethod) {
+            /** @var ShipmentMethod $shipmentMethod */
 
             if (date('Ymd', $shipmentMethod->updated) !== date('Ymd')) {
-
-                $output->writeLine('Deleted shipment method '.$shipmentMethod->name, OutputInterface::TYPE_INFO);
+                $output->writeLine(
+                    'Deleted shipment method ' . $shipmentMethod->name,
+                    OutputInterface::TYPE_INFO
+                );
 
                 $shipmentMethod->delete();
             }
