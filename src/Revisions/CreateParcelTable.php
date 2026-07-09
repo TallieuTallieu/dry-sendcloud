@@ -7,7 +7,7 @@ use Tnt\Dbi\TableBuilder;
 
 class CreateParcelTable extends DatabaseRevision implements RevisionInterface
 {
-    public function up()
+    public function up(): void
     {
         $this->queryBuilder->table('sendcloud_parcel')->create(function (TableBuilder $table) {
 
@@ -35,7 +35,7 @@ class CreateParcelTable extends DatabaseRevision implements RevisionInterface
         $this->execute();
     }
 
-    public function down()
+    public function down(): void
     {
         $this->queryBuilder->table('sendcloud_parcel')->drop();
         $this->execute();

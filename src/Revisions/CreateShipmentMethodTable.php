@@ -7,7 +7,7 @@ use Tnt\Dbi\TableBuilder;
 
 class CreateShipmentMethodTable extends DatabaseRevision implements RevisionInterface
 {
-    public function up()
+    public function up(): void
     {
         $this->queryBuilder->table('sendcloud_shipment_method')->create(function (TableBuilder $table) {
 
@@ -23,7 +23,7 @@ class CreateShipmentMethodTable extends DatabaseRevision implements RevisionInte
         $this->execute();
     }
 
-    public function down()
+    public function down(): void
     {
         $this->queryBuilder->table('sendcloud_shipment_method')->drop();
         $this->execute();

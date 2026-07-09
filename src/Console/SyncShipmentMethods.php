@@ -39,6 +39,9 @@ class SyncShipmentMethods extends Command
         return $signature->setName('sync-shipment-methods');
     }
 
+    /**
+     * @return void
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $output->writeLine('Start Sendcloud Shipment methods sync');
@@ -49,6 +52,7 @@ class SyncShipmentMethods extends Command
 
             try {
 
+                /** @var ShipmentMethod $shipmentMethod */
                 $shipmentMethod = ShipmentMethod::load_by('sendcloud_id', $shipmentMethodData['id']);
                 $shipmentMethod->updated = time();
                 $shipmentMethod->save();
@@ -70,6 +74,7 @@ class SyncShipmentMethods extends Command
         }
 
         foreach (ShipmentMethod::all() as $shipmentMethod) {
+            /** @var ShipmentMethod $shipmentMethod */
 
             if (date('Ymd', $shipmentMethod->updated) !== date('Ymd')) {
 

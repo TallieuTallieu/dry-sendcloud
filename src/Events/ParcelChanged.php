@@ -9,17 +9,18 @@ use Tnt\Sendcloud\Model\Parcel;
 class ParcelChanged extends Event
 {
     /**
-     * @var \dry\orm\Model|null
+     * @var Parcel|null
      */
     private $parcel;
 
     /**
      * ParcelChanged constructor.
-     * @param array $parcelData
+     * @param array<string, mixed> $parcelData
      */
     public function __construct(array $parcelData)
     {
         try {
+            /** @var Parcel $parcel */
             $parcel = Parcel::load_by('sendcloud_id', $parcelData['parcel']['id']);
             $parcel->updated = $parcelData['timestamp'];
             $parcel->status = $parcelData['parcel']['status']['id'];

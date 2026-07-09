@@ -21,10 +21,10 @@ class Api
     }
 
     /**
-     * @return mixed
+     * @return array<int|string, mixed>
      * @throws Exception\SendcloudException
      */
-    public function getParcels()
+    public function getParcels(): array
     {
         $response = $this->client->get('parcels');
         return $response['parcels'];
@@ -32,21 +32,21 @@ class Api
 
     /**
      * @param int $id
-     * @return array
+     * @return array<string, mixed>
      * @throws Exception\SendcloudException
      */
-    public function getParcel(int $id)
+    public function getParcel(int $id): array
     {
         $response = $this->client->get('parcels/'.$id);
         return $response['parcel'];
     }
 
     /**
-     * @param $parcel
-     * @return mixed
+     * @param array<string, mixed> $parcel
+     * @return array<string, mixed>
      * @throws Exception\SendcloudException
      */
-    public function createParcel($parcel)
+    public function createParcel(array $parcel): array
     {
         $response = $this->client->post('parcels', $parcel);
         return $response['parcel'];
@@ -54,19 +54,19 @@ class Api
 
     /**
      * @param int $id
-     * @return mixed
+     * @return array<string, mixed>
      * @throws Exception\SendcloudException
      */
-    public function cancelParcel(int $id)
+    public function cancelParcel(int $id): array
     {
         return $this->client->post('parcels/'.$id.'/cancel');
     }
 
     /**
-     * @return array
+     * @return array<int, array<string, mixed>>
      * @throws Exception\SendcloudException
      */
-    public function getShippingMethods()
+    public function getShippingMethods(): array
     {
         $response = $this->client->get('shipping_methods');
         return $response['shipping_methods'];
