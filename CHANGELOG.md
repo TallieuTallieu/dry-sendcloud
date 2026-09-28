@@ -5,6 +5,12 @@ follow [Semantic Versioning](https://semver.org). New entries are generated from
 commit messages by [dry-ci](https://github.com/TallieuTallieu/dry-ci); past
 entries may be edited by hand.
 
+## 4.0.0 - 2026-09-28
+
+### Breaking changes
+
+- **deps:** Require Guzzle 8
+
 ## 3.0.4 - 2026-09-28
 
 ### Other changes
