@@ -192,7 +192,7 @@ class SendcloudClient
             sprintf(
                 'Sendcloud error (method: %s): %s',
                 $method,
-                $response->getBody()->getContents()
+                (string) $response->getBody()
             ),
             $response->getStatusCode()
         );
