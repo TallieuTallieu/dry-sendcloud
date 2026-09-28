@@ -5,10 +5,10 @@
   "license": "proprietary",
   "require": {
     "php": ">=8.4",
-    "tallieutallieu/dry": "^v3.8.1-beta.5|^4.0.0",
-    "tallieutallieu/oak": "^3.0.8",
-    "tallieutallieu/dry-dbi": "^3.8.0",
-    "guzzlehttp/guzzle": "^7.13"
+    "tallieutallieu/dry": "^v3.8.1-beta.5|^4.4.0",
+    "tallieutallieu/oak": "^3.0.8|^4.2.0",
+    "tallieutallieu/dry-dbi": "^3.13.3",
+    "guzzlehttp/guzzle": "^8.2.0"
   },
   "require-dev": {
     "phpstan/phpstan": "^2.2"

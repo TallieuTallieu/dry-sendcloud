@@ -4,7 +4,8 @@ namespace Tnt\Sendcloud\Client;
 
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\ClientException;
-use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Exception\ResponseException;
+use GuzzleHttp\Exception\TransferException;
 use Psr\Http\Message\ResponseInterface;
 use Tnt\Sendcloud\Exception\SendcloudException;
 
@@ -36,8 +37,8 @@ class SendcloudClient
             return $this->parseResponse(
                 $this->client->request('GET', $endPoint, ['query' => $params])
             );
-        } catch (RequestException $e) {
-            if ($e->hasResponse()) {
+        } catch (TransferException $e) {
+            if ($e instanceof ResponseException) {
                 $this->parseResponse($e->getResponse());
             }
 
@@ -59,8 +60,8 @@ class SendcloudClient
             ]);
 
             return $this->parseResponse($response);
-        } catch (RequestException $e) {
-            if ($e->hasResponse()) {
+        } catch (TransferException $e) {
+            if ($e instanceof ResponseException) {
                 $this->parseResponse($e->getResponse());
             }
 
@@ -87,8 +88,8 @@ class SendcloudClient
                     $e->getResponse()->getBody()->getContents(),
                 $e->getResponse()->getStatusCode()
             );
-        } catch (RequestException $e) {
-            if ($e->hasResponse()) {
+        } catch (TransferException $e) {
+            if ($e instanceof ResponseException) {
                 $this->parseResponse($e->getResponse());
             }
 
@@ -107,8 +108,8 @@ class SendcloudClient
             return $this->parseResponse(
                 $this->client->request('DELETE', $endPoint)
             );
-        } catch (RequestException $e) {
-            if ($e->hasResponse()) {
+        } catch (TransferException $e) {
+            if ($e instanceof ResponseException) {
                 $this->parseResponse($e->getResponse());
             }
 
@@ -126,7 +127,7 @@ class SendcloudClient
         try {
             $result = $this->client->request('GET', $url);
             return $result->getBody()->getContents();
-        } catch (RequestException $e) {
+        } catch (TransferException $e) {
             throw $this->requestException('DOWNLOAD', $e);
         }
     }
@@ -172,11 +173,9 @@ class SendcloudClient
 
     private function requestException(
         string $method,
-        RequestException $exception
+        TransferException $exception
     ): SendcloudException {
-        $response = $exception->getResponse();
-
-        if (!$response) {
+        if (!($exception instanceof ResponseException)) {
             return new SendcloudException(
                 sprintf(
                     'Sendcloud error (method: %s): %s',
@@ -187,11 +186,13 @@ class SendcloudClient
             );
         }
 
+        $response = $exception->getResponse();
+
         return new SendcloudException(
             sprintf(
                 'Sendcloud error (method: %s): %s',
                 $method,
-                $response->getBody()->getContents()
+                (string) $response->getBody()
             ),
             $response->getStatusCode()
         );
