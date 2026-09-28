@@ -5,6 +5,19 @@ follow [Semantic Versioning](https://semver.org). New entries are generated from
 commit messages by [dry-ci](https://github.com/TallieuTallieu/dry-ci); past
 entries may be edited by hand.
 
+## 3.0.4 - 2026-09-28
+
+### Other changes
+
+- Switch to dry-ci
+
+## 3.0.3 - 2026-09-28
+
+### Other changes
+
+- Update the release action runtime
+- Make auto-release reruns safe ([sc-9973](https://app.shortcut.com/tallieu--tallieu/story/9973))
+
 ## 3.0.2 - 2026-07-09
 
 ### Other changes
